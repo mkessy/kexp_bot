@@ -1,0 +1,10 @@
+(executable
+ (name main)
+ (libraries dream tyxml caqti-driver-sqlite3 kexp_bot kexp_bot.api)
+ (preprocess (pps ppx_deriving_yojson lwt_ppx ppx_deriving.show)) 
+ )
+
+(rule
+  (target kexp.sqlite)
+  (deps ../kexp.sqlite)
+  (action (copy %{deps} %{target})))
