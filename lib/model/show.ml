@@ -29,6 +29,7 @@ type t =
   ; host_names : string option
   ; host_uris : string option
   }
+[@@deriving yojson, show]
 
 module Queries = struct
   let insert =
@@ -41,5 +42,28 @@ module Queries = struct
             (%int{program}, %string{program_uri}, %string{program_name}, %string{program_tags}, %string{tagline}, %string{start_time}, %string?{uri}, %string?{image_uri}, %string?{show_uri}, %string?{hosts}, %string?{host_names}, %string?{host_uris})
         |sql}
         syntax_off]
+  ;;
+
+  let get_by_id =
+    [%rapper
+      get_opt
+        {sql|
+          SELECT @int{id}
+               , @int{program}
+               , @string{program_uri}
+               , @string{program_name}
+               , @string{program_tags}
+               , @string{tagline}
+               , @string{start_time}
+               , @string?{uri}
+               , @string?{image_uri}
+               , @string?{show_uri}
+               , @string?{hosts}
+               , @string?{host_names}
+               , @string?{host_uris}
+          FROM shows WHERE id = %int{id}
+        |sql}
+        syntax_off
+        record_out]
   ;;
 end

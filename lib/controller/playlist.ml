@@ -56,10 +56,5 @@ module Playlist = struct
   ;;
 
   let length t = List.length t.songs
-
-  let get_song_by_index t index =
-    match List.nth_opt t.songs index with
-    | Some song -> Some song
-    | None -> None
-  ;;
+  let get_song_by_index t index = List.nth_opt t.songs index
 end

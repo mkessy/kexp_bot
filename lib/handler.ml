@@ -7,9 +7,9 @@ let index (_req : Dream.request) =
   | Error e ->
     let err_str = Caqti_error.show e in
     let () = Dream.log "Error: %s" err_str in
-    Dream.html (html_to_string (Web.Pages.home ~playlists:[]))
+    Dream.html (Web.Pages.home ~playlists:[] |> html_to_string)
   | Ok all_playlists ->
-    Dream.html (html_to_string (Web.Pages.home ~playlists:all_playlists))
+    Dream.html (Web.Pages.home ~playlists:all_playlists |> html_to_string)
 ;;
 
 let playlist (req : Dream.request) =
@@ -23,7 +23,7 @@ let playlist (req : Dream.request) =
     (match pl with
      | Some pl ->
        let () = print_string (Playlist.show pl) in
-       Dream.html (html_to_string (Pages.single_playlist pl))
+       Dream.html (Pages.single_playlist pl |> html_to_string)
      | None -> Dream.empty `Not_Found)
     (*
        ('a, Format.formatter, unit, unit) format4 -> 'a
