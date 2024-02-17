@@ -1,18 +1,3 @@
-(*
-   song_id	VARCHAR	NO	NULL
-   song	VARCHAR	NO	NULL
-   recording_id	VARCHAR	YES	NULL
-   artist	VARCHAR	NO	NULL
-   album	VARCHAR	YES	NULL
-   release_id	VARCHAR	YES	NULL
-   release_group_id	VARCHAR	YES	NULL
-   release_date	DATETIME	YES	NULL
-   rotation_status	VARCHAR	YES	NULL
-   is_local	BOOLEAN	NO	NULL
-   is_request	BOOLEAN	NO	NULL
-   labels	VARCHAR	YES	NULL
-   thumbnail_uri	VARCHAR	YES	NULL
-*)
 type t =
   { song_id : string
   ; song : string
@@ -28,9 +13,11 @@ type t =
   ; labels : string option
   ; thumbnail_uri : string option
   }
-[@@deriving yojson]
+[@@deriving yojson, show, make]
 
 module Queries = struct
+  open Util
+
   let insert =
     [%rapper
       execute
@@ -52,5 +39,66 @@ module Queries = struct
   |sql}
         record_out
         syntax_off]
+  ;;
+
+  let insert_many (module DB : Caqti_lwt.CONNECTION) songs =
+    let placeholders =
+      List.map (fun _ -> "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)") songs
+      |> String.concat ", "
+    in
+    let (Dynparam.Pack (typ, values)) =
+      List.fold_left
+        (fun pack s ->
+          Dynparam.add
+            Caqti_type.(
+              tup2
+                string
+                (tup2
+                   string
+                   (tup2
+                      (option string)
+                      (tup2
+                         string
+                         (tup2
+                            (option string)
+                            (tup2
+                               (option string)
+                               (tup2
+                                  (option string)
+                                  (tup2
+                                     (option string)
+                                     (tup2
+                                        (option string)
+                                        (tup2
+                                           bool
+                                           (tup2
+                                              bool
+                                              (tup2 (option string) (option string)))))))))))))
+            ( s.song_id
+            , ( s.song
+              , ( s.recording_id
+                , ( s.artist
+                  , ( s.album
+                    , ( s.release_id
+                      , ( s.release_group_id
+                        , ( s.release_date
+                          , ( s.rotation_status
+                            , (s.is_local, (s.is_request, (s.labels, s.thumbnail_uri))) )
+                          ) ) ) ) ) ) ) )
+            pack)
+        Dynparam.empty
+        songs
+    in
+    let sql =
+      Printf.sprintf
+        "INSERT OR IGNORE INTO songs (song_id, song, recording_id, artist, album, \
+         release_id, release_group_id, release_date, rotation_status, is_local, \
+         is_request, labels, thumbnail_uri) \n\
+        \         VALUES %s"
+        placeholders
+    in
+    let open Caqti_request.Infix in
+    let query = (typ -->. Caqti_type.unit) ~oneshot:true @:- sql in
+    DB.exec query values
   ;;
 end

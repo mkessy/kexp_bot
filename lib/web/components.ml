@@ -130,7 +130,11 @@ module Menu = struct
   ;;
 end
 
-module MainGrid = struct
+module MainGrid : sig
+  type t = Controller.Types.playlist
+
+  val render : playlists:t list_wrap -> [> Html_types.div ] elt
+end = struct
   type t = Controller.Types.playlist
 
   let playlist_item (pl : t) =

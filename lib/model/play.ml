@@ -7,9 +7,11 @@ type t =
   ; uri : string option
   ; show_uri : string option
   }
-[@@deriving yojson]
+[@@deriving yojson, show, make]
 
 module Queries = struct
+  open Util
+
   let insert =
     [%rapper
       execute
@@ -32,7 +34,7 @@ module Queries = struct
         record_out]
   ;;
 
-  let get_by_unique =
+  let get_by_song_id =
     [%rapper
       get_opt
         {sql|
@@ -55,5 +57,37 @@ module Queries = struct
   |sql}
         syntax_off
         record_out]
+  ;;
+
+  let insert_many (module DB : Caqti_lwt.CONNECTION) plays =
+    let placeholders =
+      List.map (fun _ -> "(?, ?, ?, ?, ?, ?)") plays |> String.concat ", "
+    in
+    let (Dynparam.Pack (typ, values)) =
+      List.fold_left
+        (fun pack p ->
+          Dynparam.add
+            Caqti_type.(
+              tup2
+                string
+                (tup2
+                   string
+                   (tup2
+                      (option string)
+                      (tup2 int (tup2 (option string) (option string))))))
+            (p.song_id, (p.airdate, (p.comment, (p.show, (p.uri, p.show_uri)))))
+            pack)
+        Dynparam.empty
+        plays
+    in
+    let sql =
+      Printf.sprintf
+        "INSERT OR IGNORE INTO plays (song_id, airdate, comment, show, uri, show_uri) \
+         VALUES %s"
+        placeholders
+    in
+    let open Caqti_request.Infix in
+    let query = (typ -->. Caqti_type.unit) ~oneshot:true @:- sql in
+    DB.exec query values
   ;;
 end

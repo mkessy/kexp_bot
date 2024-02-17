@@ -3,7 +3,7 @@ module Show = struct
 
   type t = Show.t
 
-  let insert_show (show : t) conn =
+  let insert_show ~(show : t) conn =
     Model.Show.Queries.insert
       ~program:show.program
       ~program_uri:show.program_uri
@@ -19,4 +19,7 @@ module Show = struct
       ~host_uris:show.host_uris
       conn
   ;;
+
+  let insert_many ~(shows : t list) conn = Model.Show.Queries.insert_many conn shows
+  let get_all conn = Model.Show.Queries.get_all conn
 end

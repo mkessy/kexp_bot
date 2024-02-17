@@ -1,7 +1,8 @@
 module Song = struct
   open Model
 
-  type t = Song.t [@@deriving yojson]
+  type t = Song.t
 
-  let insert_play (play : t) conn = Model.Song.Queries.insert play conn
+  let insert_song ~(song : t) conn = Model.Song.Queries.insert song conn
+  let insert_many ~(songs : t list) conn = Model.Song.Queries.insert_many conn songs
 end

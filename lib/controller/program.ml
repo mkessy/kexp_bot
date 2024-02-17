@@ -3,7 +3,7 @@ module Program = struct
 
   type t = Program.t [@@deriving yojson]
 
-  let insert_program (program : t) conn =
+  let insert_program ~(program : t) conn =
     Model.Program.Queries.insert
       ~uri:program.uri
       ~name:program.name
@@ -13,5 +13,6 @@ module Program = struct
       conn
   ;;
 
-  let get_all conn = Model.Program.Queries.get_all conn
+  let insert_many ~(programs : t list) conn = Program.Queries.insert_many conn programs
+  let get_all conn = Program.Queries.get_all conn
 end
