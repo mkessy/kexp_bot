@@ -22,4 +22,5 @@ module Show = struct
 
   let insert_many ~(shows : t list) conn = Model.Show.Queries.insert_many conn shows
   let get_all conn = Model.Show.Queries.get_all conn
+  let get_latest conn = Model.Show.Queries.get_latest conn
 end

@@ -1,5 +1,5 @@
 (library
  (name kexp_bot)
- (libraries dream kexp_bot.controller kexp_bot.model kexp_bot.web kexp_bot.api lwt )
+ (libraries dream kexp_bot.controller ptime kexp_bot.model kexp_bot.web kexp_bot.api kexp_bot.util lwt )
  (preprocess (pps lwt_ppx))
  )

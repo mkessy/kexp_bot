@@ -25,13 +25,6 @@ let playlist (req : Dream.request) =
        let () = print_string (Playlist.show pl) in
        Dream.html (Pages.single_playlist pl |> html_to_string)
      | None -> Dream.empty `Not_Found)
-    (*
-       ('a, Format.formatter, unit, unit) format4 -> 'a
-       Formats a message and logs it. Disregard the obfuscated type: the first argument is a format string as described in the standard library modules Printf and Format. The rest of the arguments are determined by the format string. See example a-log [playground].
-
-       Dream.log "Counter is now: %i" counter;
-       Dream.log "Client: %s" (Dream.client request);
-    *)
   | Error e ->
     let err_str = Caqti_error.show e in
     let () = Dream.log "Error: %s" err_str in

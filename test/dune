@@ -1,5 +1,4 @@
 (test
- (name util)
- (libraries alcotest kexp_bot.api)
- 
+ (name test_util)
+ (libraries alcotest kexp_bot.ingest)
  )

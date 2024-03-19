@@ -15,4 +15,6 @@ module Play = struct
   ;;
 
   let insert_many ~(plays : t list) conn = Model.Play.Queries.insert_many conn plays
+  let get_latest conn = Model.Play.Queries.get_latest conn
+  let get_latest_by_airdate conn = Model.Play.Queries.get_latest_by_airdate conn
 end

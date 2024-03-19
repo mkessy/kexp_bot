@@ -12,6 +12,30 @@ type t =
 module Queries = struct
   open Util
 
+  let get_latest =
+    [%rapper
+      get_opt
+        {sql|
+          SELECT @int{id}
+          FROM plays 
+          ORDER BY id DESC
+          LIMIT 1
+        |sql}
+        syntax_off]
+  ;;
+
+  let get_latest_by_airdate =
+    [%rapper
+      get_opt
+        {sql|
+          SELECT @string{airdate}
+          FROM plays 
+          ORDER BY id DESC
+          LIMIT 1
+        |sql}
+        syntax_off]
+  ;;
+
   let insert =
     [%rapper
       execute

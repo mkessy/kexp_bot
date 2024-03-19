@@ -20,6 +20,18 @@ type t =
 module Queries = struct
   open Util
 
+  let get_latest =
+    [%rapper
+      get_opt
+        {sql|
+          SELECT @int{id}
+          FROM programs 
+          ORDER BY id DESC
+          LIMIT 1
+        |sql}
+        syntax_off]
+  ;;
+
   let insert =
     [%rapper
       execute

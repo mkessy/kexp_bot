@@ -1,6 +1,6 @@
 (* let db_path = "sqlite3:kexp.sqlite";; *)
 
-match Lwt_main.run (Api.Endpoints.Api.get_shows ()) with
+match Lwt_main.run (Api.Endpoints.get_shows ()) with
 | Ok shows_response -> print_string (Api.Api_j.string_of_shows_response shows_response)
 | Error e ->
   (match e with

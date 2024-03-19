@@ -1,19 +1,3 @@
-(*
-   id	INTEGER	NO	NULL
-   program	INTEGER	NO	NULL	programs(id)
-   program_uri	VARCHAR	NO	NULL
-   program_name	VARCHAR	NO	NULL
-   program_tags	VARCHAR	NO	NULL
-   tagline	TEXT	NO	NULL
-   start_time	DATETIME	NO	NULL
-   uri	VARCHAR	YES	NULL
-   image_uri	VARCHAR	YES	NULL
-   show_uri	VARCHAR	YES	NULL
-   hosts	VARCHAR	YES	NULL
-   host_names	VARCHAR	YES	NULL
-   host_uris	VARCHAR	YES	NULL
-*)
-
 type t =
   { id : int
   ; program : int
@@ -33,6 +17,18 @@ type t =
 
 module Queries = struct
   open Util
+
+  let get_latest =
+    [%rapper
+      get_opt
+        {sql|
+          SELECT @int{id}
+          FROM shows
+          ORDER BY id DESC
+          LIMIT 1
+        |sql}
+        syntax_off]
+  ;;
 
   let insert =
     [%rapper

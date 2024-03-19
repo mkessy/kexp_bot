@@ -1,8 +1,7 @@
 (* Test Function *)
-
 let test_parse_and_format_to_utcz () =
   let open Alcotest in
-  let open Api.Util in
+  let open Util.Date in
   let check_string = check (option string) in
   (* Test 1: Valid ISO8601 date-time *)
   let input_1 = "2024-01-30T12:00:00+01:00" in

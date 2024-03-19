@@ -2,7 +2,7 @@ type t =
   { song_id : string
   ; artist_id : string
   }
-[@@deriving yojson, show]
+[@@deriving yojson, show, make]
 
 module Queries = struct
   open Util
