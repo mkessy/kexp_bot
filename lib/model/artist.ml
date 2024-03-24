@@ -5,7 +5,7 @@ module Queries = struct
     [%rapper
       execute
         {sql|
-          INSERT OR INGORE INTO users (id)
+          INSERT OR INGORE INTO artists (id)
           VALUES (%string{id})
           |sql}
         syntax_off]
@@ -15,8 +15,8 @@ module Queries = struct
     [%rapper
       execute
         {sql|
-          INSERT OR IGNORE INTO users (id)
-          VALUES ( %list{%string{ids}} )
+          INSERT OR IGNORE INTO artists (id)
+          VALUES %list{( %string{ids} )}
           |sql}
         syntax_off]
   ;;

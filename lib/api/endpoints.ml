@@ -48,6 +48,7 @@ let get ~endpoint ?limit ?offset () =
   in
   let client = Ezcurl_lwt.make () in
   let url = endpoint_to_uri ~endpoint ?limit ?offset () |> Uri.to_string in
+  print_endline url;
   let open Lwt.Infix in
   Ezcurl_lwt.get ~headers ~client ~url ()
   >>= fun res ->

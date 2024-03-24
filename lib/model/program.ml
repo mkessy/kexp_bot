@@ -1,12 +1,3 @@
-(*
-   id	INTEGER	NO	NULL
-   uri	VARCHAR	YES	NULL
-   name	VARCHAR	NO	NULL
-   is_active	BOOLEAN	NO	NULL
-   description	TEXT	YES	NULL
-   tags	VARCHAR	YES	NULL
-*)
-
 type t =
   { id : int
   ; uri : string option

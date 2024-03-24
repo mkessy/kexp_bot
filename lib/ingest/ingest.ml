@@ -50,45 +50,51 @@ let artist_ids_set_of_plays (plays : Api_t.play list) =
 
 let ingest_programs (program_response : Api.Api_t.program list) conn =
   let open Controller in
-  let programs =
-    List.map
-      (fun (p : Api_t.program) ->
-        let program =
-          Model.Program.make
-            ~id:p.id
-            ~uri:p.uri
-            ~name:p.name
-            ~is_active:p.is_active
-            ~description:p.description
-            ()
-        in
-        program)
-      program_response
-  in
-  Program.Program.insert_many ~programs conn
+  if List.length program_response = 0
+  then Lwt.return (Ok ())
+  else (
+    let programs =
+      List.map
+        (fun (p : Api_t.program) ->
+          let program =
+            Model.Program.make
+              ~id:p.id
+              ~uri:p.uri
+              ~name:p.name
+              ~is_active:p.is_active
+              ~description:p.description
+              ()
+          in
+          program)
+        program_response
+    in
+    Program.Program.insert_many ~programs conn)
 ;;
 
 let ingest_shows (shows : Api_t.show list) conn =
   let open Controller in
-  let shows =
-    List.map
-      (fun (s : Api_t.show) ->
-        let show =
-          Model.Show.make
-            ~id:s.id
-            ~uri:s.uri
-            ~start_time:s.start_time
-            ~program:s.program
-            ~program_uri:s.program_uri
-            ~program_name:s.program_name
-            ~program_tags:s.program_tags
-            ~tagline:s.tagline
-            ()
-        in
-        show)
-      shows
-  in
-  Show.Show.insert_many ~shows conn
+  if List.length shows = 0
+  then Lwt.return (Ok ())
+  else (
+    let shows =
+      List.map
+        (fun (s : Api_t.show) ->
+          let show =
+            Model.Show.make
+              ~id:s.id
+              ~uri:s.uri
+              ~start_time:s.start_time
+              ~program:s.program
+              ~program_uri:s.program_uri
+              ~program_name:s.program_name
+              ~program_tags:s.program_tags
+              ~tagline:s.tagline
+              ()
+          in
+          show)
+        shows
+    in
+    Show.Show.insert_many ~shows conn)
 ;;
 
 let ingest_play (plays : Api_t.play list) conn =
@@ -119,34 +125,42 @@ let ingest_play (plays : Api_t.play list) conn =
 
 let ingest_artist (artist_ids : string list) conn =
   let open Controller in
-  Artist.Artist.insert_many ~artists:artist_ids conn
+  if List.length artist_ids = 0
+  then Lwt.return (Ok ())
+  else Artist.Artist.insert_many ~artists:artist_ids conn
 ;;
 
 let ingest_songs (songs : Model.Song.t list) conn =
   let open Controller in
-  Song.Song.insert_many ~songs conn
+  if List.length songs = 0 then Lwt.return (Ok ()) else Song.Song.insert_many ~songs conn
 ;;
 
 let song_artists_of_plays (plays : Api_t.play list) =
   let open Model in
-  List.fold_left
-    (fun acc (play : Api_t.play) ->
-      match song_id_of_play play, artist_ids_set_of_plays [ play ] with
-      | Some song_id, artist_ids ->
-        List.map (fun artist_id -> Song_artist.make ~song_id ~artist_id) artist_ids
-      | _ -> acc)
-    []
-    plays
+  if List.length plays = 0
+  then []
+  else
+    List.fold_left
+      (fun acc (play : Api_t.play) ->
+        match song_id_of_play play, artist_ids_set_of_plays [ play ] with
+        | Some song_id, artist_ids ->
+          List.map (fun artist_id -> Song_artist.make ~song_id ~artist_id) artist_ids
+        | _ -> acc)
+      []
+      plays
 ;;
 
 let ingest_song_artist (song_artists : Model.Song_artist.t list) conn =
   let open Controller in
-  Artist.Artist.insert_many_song_artist ~song_artists conn
+  if List.length song_artists = 0
+  then Lwt.return (Ok ())
+  else Artist.Artist.insert_many_song_artist ~song_artists conn
 ;;
 
 let ingest_plays (plays : Api_t.play list) conn =
   let open Db in
   let open Lwt_result.Syntax in
+  print_endline (Printf.sprintf "Ingesting %d plays" (List.length plays));
   let songs =
     List.fold_left
       (fun acc play ->
@@ -184,8 +198,13 @@ let update_programs conn =
     let new_programs =
       List.filter (fun (p : Api_t.program) -> p.id > latest_program_id) programs.results
     in
-    let* () = ingest_programs new_programs conn in
-    Lwt.return (Ok ())
+    if List.length new_programs = 0
+    then (
+      print_endline "No new programs to ingest";
+      Lwt.return (Ok ()))
+    else
+      let* () = ingest_programs new_programs conn in
+      Lwt.return (Ok ())
   | None ->
     let* () = ingest_programs programs.results conn in
     Lwt.return (Ok ())
@@ -202,62 +221,85 @@ let update_shows conn =
   let open Lwt_result.Syntax in
   let open Controller.Show in
   let* latest_show_id = Show.get_latest () conn in
+  let limit = 200 in
   let rec fetch_and_ingest_shows next =
-    let* shows = Endpoints.get_shows ~limit:200 ~next () in
+    print_endline (Printf.sprintf "Fetching shows with limit %d" limit);
+    let* shows = Endpoints.get_shows ~limit ~next () in
     match latest_show_id with
     | Some latest ->
       let new_shows = List.filter (fun (s : Api_t.show) -> s.id > latest) shows.results in
-      if List.length new_shows = 0
-      then Lwt.return (Ok ())
-      else
+      let new_shows_count = List.length new_shows in
+      if new_shows_count = 0
+      then (
+        print_endline "No new shows to ingest";
+        Lwt.return (Ok ()))
+      else (
+        print_endline (Printf.sprintf "Ingesting %d new shows" new_shows_count);
         let* () = ingest_shows new_shows conn in
-        (match shows.next with
-         | Some next -> fetch_and_ingest_shows next
-         | None -> Lwt.return (Ok ()))
+        match shows.next with
+        | Some next -> fetch_and_ingest_shows next
+        | None -> Lwt.return (Ok ()))
     | None ->
       let* () = ingest_shows shows.results conn in
       (match shows.next with
        | Some next -> fetch_and_ingest_shows next
        | None -> Lwt.return (Ok ()))
   in
-  fetch_and_ingest_shows (Endpoints.string_of_endpoint `Shows)
+  fetch_and_ingest_shows
+    (Uri.to_string (Endpoints.endpoint_to_uri ~endpoint:`Shows ~limit ()))
 ;;
 
 (* TODO: add logic to check if any plays have not yet ingested shows or programs *)
-let update_plays conn =
+let update_plays ?(limit = 20) conn =
   let open Lwt_result.Syntax in
   let open Controller.Play in
+  let open Controller.Show in
+  let* latest_show_id = Show.get_latest () conn in
   let* latest_play_airdate = Play.get_latest_by_airdate () conn in
   let rec fetch_and_ingest_plays next =
-    let* plays = Endpoints.get_plays ~limit:200 ~next () in
-    match latest_play_airdate with
-    | Some latest ->
+    let* plays = Endpoints.get_plays ~limit ~next () in
+    (* print the latest show and airdate *)
+    print_endline
+      (Printf.sprintf
+         "Latest show id: %s, latest play airdate: %s"
+         (Option.value ~default:"None" (Option.map string_of_int latest_show_id))
+         (Option.value ~default:"None" latest_play_airdate));
+    match latest_play_airdate, latest_show_id with
+    | Some latest_airdate, Some latest_show ->
       let new_plays =
-        List.filter (fun (p : Api_t.play) -> Date.( >= ) p.airdate latest) plays.results
+        List.filter
+          (fun (p : Api_t.play) -> Date.( > ) p.airdate latest_airdate)
+          plays.results
+        (* check if we need to update shows if any of the plays have a .show past the latest *)
       in
-      if List.length new_plays = 0
-      then Lwt.return (Ok ())
-      else
-        let* () = ingest_plays new_plays conn in
-        (match plays.next with
-         | Some next -> fetch_and_ingest_plays next
-         | None -> Lwt.return (Ok ()))
-    | None ->
+      let new_plays_count = List.length new_plays in
+      print_endline (Printf.sprintf "Found %d new plays" new_plays_count);
+      if new_plays_count = 0
+      then (
+        print_endline "No new plays to ingest";
+        Lwt.return (Ok ()))
+      else (
+        let should_update_shows =
+          List.exists (fun (p : Api_t.play) -> p.show > latest_show) new_plays
+        in
+        match should_update_shows with
+        | true ->
+          let* () = update_shows conn in
+          let* () = ingest_plays new_plays conn in
+          (match plays.next with
+           | Some next -> fetch_and_ingest_plays next
+           | None -> Lwt.return (Ok ()))
+        | false ->
+          let* () = ingest_plays new_plays conn in
+          (match plays.next with
+           | Some next -> fetch_and_ingest_plays next
+           | None -> Lwt.return (Ok ())))
+    | _, _ ->
       let* () = ingest_plays plays.results conn in
       (match plays.next with
        | Some next -> fetch_and_ingest_plays next
        | None -> Lwt.return (Ok ()))
   in
-  fetch_and_ingest_plays (Endpoints.string_of_endpoint `Plays)
+  fetch_and_ingest_plays
+    (Uri.to_string (Endpoints.endpoint_to_uri ~endpoint:`Plays ~limit ()))
 ;;
-
-(*
-   Ingest steps.
-
-   1. Insert song into song table.
-   2. ensure program exists if not insert program
-   3. ensure show exists if not insert show
-   4. insert play into play table
-   5. insert artist into artist table
-   6. insert song_artist into song_artist table
-*)

@@ -88,23 +88,6 @@ module Queries = struct
         record_out]
   ;;
 
-  (*
-     { id : int
-  ; program : int
-  ; program_uri : string
-  ; program_name : string
-  ; program_tags : string
-  ; tagline : string
-  ; start_time : string
-  ; uri : string option
-  ; image_uri : string option
-  ; show_uri : string option
-  ; hosts : string option
-  ; host_names : string option
-  ; host_uris : string option
-  }
-  *)
-
   let insert_many (module DB : Caqti_lwt.CONNECTION) shows =
     let placeholders =
       List.map (fun _ -> "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)") shows

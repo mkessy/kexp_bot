@@ -8,7 +8,7 @@ module Db : sig
     -> (module Caqti_lwt.CONNECTION)
     -> (unit, 'a) Lwt_result.t
 end = struct
-  let uri = "sqlite3:./path/to/your.db" (* Replace with your actual .db file path *)
+  let uri = "sqlite3:kexp.sqlite" (* Replace with your actual .db file path *)
   let connect () = Caqti_lwt.connect (Uri.of_string uri)
 
   let iter_queries queries conn =

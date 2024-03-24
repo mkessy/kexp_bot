@@ -40,8 +40,8 @@ module Queries = struct
     [%rapper
       execute
         {sql|
-  INSERT INTO plays (song_id, airdate, comment, show, uri, show_uri)
-  VALUES (%string{song_id}, %string{airdate}, %string?{comment}, %int{show}, %string?{uri}, %string?{show_uri})
+  INSERT INTO plays (id, song_id, airdate, comment, show, uri, show_uri)
+  VALUES (%int(id), %string{song_id}, %string{airdate}, %string?{comment}, %int{show}, %string?{uri}, %string?{show_uri})
   |sql}
         syntax_off]
   ;;
@@ -85,7 +85,7 @@ module Queries = struct
 
   let insert_many (module DB : Caqti_lwt.CONNECTION) plays =
     let placeholders =
-      List.map (fun _ -> "(?, ?, ?, ?, ?, ?)") plays |> String.concat ", "
+      List.map (fun _ -> "(?, ?, ?, ?, ?, ?, ?)") plays |> String.concat ", "
     in
     let (Dynparam.Pack (typ, values)) =
       List.fold_left
@@ -93,21 +93,23 @@ module Queries = struct
           Dynparam.add
             Caqti_type.(
               tup2
-                string
+                int
                 (tup2
                    string
                    (tup2
-                      (option string)
-                      (tup2 int (tup2 (option string) (option string))))))
-            (p.song_id, (p.airdate, (p.comment, (p.show, (p.uri, p.show_uri)))))
+                      string
+                      (tup2
+                         (option string)
+                         (tup2 int (tup2 (option string) (option string)))))))
+            (p.id, (p.song_id, (p.airdate, (p.comment, (p.show, (p.uri, p.show_uri))))))
             pack)
         Dynparam.empty
         plays
     in
     let sql =
       Printf.sprintf
-        "INSERT OR IGNORE INTO plays (song_id, airdate, comment, show, uri, show_uri) \
-         VALUES %s"
+        "INSERT OR IGNORE INTO plays (id, song_id, airdate, comment, show, uri, \
+         show_uri) VALUES %s"
         placeholders
     in
     let open Caqti_request.Infix in
