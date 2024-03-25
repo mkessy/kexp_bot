@@ -9,4 +9,8 @@ module Artist = struct
   let insert_many_song_artist ~(song_artists : song_arist list) conn =
     Song_artist.Queries.insert_many conn song_artists
   ;;
+
+  let top_played_artists ~days ~limit conn =
+    Model.Artist.Queries.top_played_artists ~days ~limit conn
+  ;;
 end

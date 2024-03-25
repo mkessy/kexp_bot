@@ -14,7 +14,6 @@ module Date = struct
   ;;
 
   let compare (date1 : t) (date2 : t) =
-    let open Option in
     let date1_utcz = parse_and_format_to_utcz date1 in
     let date2_utcz = parse_and_format_to_utcz date2 in
     match date1_utcz, date2_utcz with

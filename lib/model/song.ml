@@ -17,6 +17,7 @@ type t =
 
 module Queries = struct
   open Util
+  open Caqti_request.Infix
 
   let insert =
     [%rapper
@@ -33,7 +34,7 @@ module Queries = struct
     [%rapper
       get_opt
         {sql|
-  SELECT @string{t.song_id}, @string{t.song}, @string?{t.recording_id}, @string{t.artist}, @string?{t.album}, @string?(t.album), @string?{t.release_id}, @string?{t.release_group_id}, @string?{t.release_date}, @string?{t.rotation_status}, @bool{t.is_local}, @bool{t.is_request}, @string?{t.labels}, @string?{t.thumbnail_uri} 
+  SELECT @string{t.song_id}, @string{t.song}, @string?{t.recording_id}, @string{t.artist}, @string?{t.album}, @string?{t.release_id}, @string?{t.release_group_id}, @string?{t.release_date}, @string?{t.rotation_status}, @bool{t.is_local}, @bool{t.is_request}, @string?{t.labels}, @string?{t.thumbnail_uri} 
   FROM songs
   WHERE song_id = %string{song_id}
   |sql}
@@ -100,5 +101,21 @@ module Queries = struct
     let open Caqti_request.Infix in
     let query = (typ -->. Caqti_type.unit) ~oneshot:true @:- sql in
     DB.exec query values
+  ;;
+
+  let top_played_songs ~days ~limit =
+    let sql =
+      {|
+        SELECT plays.song_id, COUNT(*) AS play_count
+        FROM plays
+        WHERE plays.airdate >= datetime('now', ?)
+        GROUP BY plays.song_id
+        ORDER BY play_count DESC
+        LIMIT ?
+      |}
+    in
+    let query = Caqti_type.(tup2 string int ->* tup2 string int32) sql in
+    let days_expr = Util.sql_days_of_int days in
+    fun (module DB : Caqti_lwt.CONNECTION) -> DB.collect_list query (days_expr, limit)
   ;;
 end

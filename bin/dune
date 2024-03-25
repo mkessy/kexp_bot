@@ -28,6 +28,13 @@
  (preprocess (pps ppx_deriving_yojson )) 
  )
 
+(executable
+ (name test)
+ (modules test)
+ (libraries caqti-driver-sqlite3 kexp_bot kexp_bot.controller)
+ (preprocess (pps ppx_deriving_yojson )) 
+ )
+
 (rule
   (target kexp.sqlite)
   (deps ../kexp.sqlite)

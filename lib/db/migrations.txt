@@ -1,0 +1,5 @@
+CREATE INDEX idx_shows_program_start_time ON shows(program, start_time);
+
+CREATE INDEX idx_plays_song_id_show ON plays(song_id, show);
+
+CREATE INDEX idx_plays_airdate ON plays(airdate);

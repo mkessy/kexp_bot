@@ -5,7 +5,7 @@ let html_to_string html = Format.asprintf "%a" (Tyxml.Html.pp ()) html
 module Playlist = struct
   type t = Controller.Types.playlist
 
-  let song_item (song : Model.Playlist_song.Playlist_song.t) =
+  let song_item (song : Model.Playlist_song.Playlist_song.playlist_song) =
     div
       ~a:[ a_class [ "grid"; "gap-2" ] ]
       [ div
