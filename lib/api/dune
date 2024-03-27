@@ -2,5 +2,5 @@
  (name api)
  (public_name kexp_bot.api)
  (libraries lwt ppx_deriving ppx_rapper_lwt atdgen ezcurl-lwt yojson uri ptime kexp_bot.controller kexp_bot.db) 
- (preprocess (pps ppx_deriving_yojson ppx_yojson lwt_ppx ppx_deriving.make ppx_deriving.show))
+ (preprocess (pps  ppx_yojson lwt_ppx ppx_deriving.make ppx_deriving.show))
 )

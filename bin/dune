@@ -2,7 +2,7 @@
  (name main)
  (modules main)
  (libraries dream tyxml caqti-driver-sqlite3 kexp_bot kexp_bot.api kexp_bot.db)
- (preprocess (pps ppx_deriving_yojson lwt_ppx ppx_deriving.show)) 
+ (preprocess (pps lwt_ppx ppx_deriving.show)) 
  )
 
 
@@ -10,30 +10,26 @@
  (name update_programs)
  (modules update_programs)
  (libraries caqti-driver-sqlite3 kexp_bot kexp_bot.ingest)
- (preprocess (pps ppx_deriving_yojson )) 
- )
+ ) 
 
 (executable
  (name update_shows)
  (modules update_shows)
  (libraries caqti-driver-sqlite3 kexp_bot kexp_bot.ingest)
- (preprocess (pps ppx_deriving_yojson )) 
- )
+ ) 
 
 
 (executable
  (name update_plays)
  (modules update_plays)
  (libraries caqti-driver-sqlite3 kexp_bot kexp_bot.ingest)
- (preprocess (pps ppx_deriving_yojson )) 
- )
+ ) 
 
 (executable
  (name test)
  (modules test)
  (libraries caqti-driver-sqlite3 kexp_bot kexp_bot.controller)
- (preprocess (pps ppx_deriving_yojson )) 
- )
+ ) 
 
 (rule
   (target kexp.sqlite)
