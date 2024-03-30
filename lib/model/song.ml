@@ -98,7 +98,6 @@ module Queries = struct
         \         VALUES %s"
         placeholders
     in
-    let open Caqti_request.Infix in
     let query = (typ -->. Caqti_type.unit) ~oneshot:true @:- sql in
     DB.exec query values
   ;;

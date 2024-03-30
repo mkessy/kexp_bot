@@ -5,7 +5,7 @@
    Controller.Playlist.Playlist.get_by_id ~id:1 conn
    ;; *)
 
-let run_test_cover_art () =
+let _run_test_cover_art () =
   let open Lwt_result.Syntax in
   let* res =
     Api.Endpoints.get_cover_art_by_release_group
@@ -14,6 +14,13 @@ let run_test_cover_art () =
   let res_string = Api.Api_j.string_of_release_group_response res in
   print_string res_string;
   Lwt_result.return ()
+;;
+
+let run_test_search () =
+  let open Db in
+  let open Lwt_result.Syntax in
+  let* conn = Db.connect () in
+  Controller.Search.Search.search ~limit:25 ~query_string:"The Beat" conn
 ;;
 
 let _pp_option ppf = function
@@ -39,7 +46,9 @@ let handle_error = function
    | Error err -> handle_error err *)
 
 let _ =
-  match Lwt_main.run (run_test_cover_art ()) with
-  | Ok () -> Lwt.return ()
+  match Lwt_main.run (run_test_search ()) with
+  | Ok res ->
+    let () = print_string (List.length res |> string_of_int) in
+    Lwt.return ()
   | Error err -> handle_error err
 ;;

@@ -1,5 +1,7 @@
 type t =
-  { song_id : string
+  { artist : string option
+  ; album : string option
+  ; song_id : string
   ; artist_id : string
   }
 [@@deriving yojson, show, make]
@@ -11,8 +13,8 @@ module Queries = struct
     [%rapper
       execute
         {sql|
-          INSERT INTO song_artist (song_id, artist_id)
-          VALUES (%string{song_id}, %string{artist_id})
+          INSERT INTO song_artist (song_id, artist_id, artist, album)
+          VALUES (%string{song_id}, %string{artist_id}, %string?{artist}, %string?{album})
         |sql}
         syntax_off]
   ;;
@@ -21,7 +23,7 @@ module Queries = struct
     [%rapper
       get_many
         {sql|
-          SELECT @string{song_id}, @string{artist_id} FROM song_artist
+          SELECT @string{song_id}, @string{artist_id}, @string?{artist}, @string?{album} FROM song_artist
           WHERE song_id = %string{song_id}           
         |sql}
         syntax_off
@@ -29,17 +31,22 @@ module Queries = struct
   ;;
 
   let insert_many (module DB : Caqti_lwt.CONNECTION) song_artists =
-    let placeholders = List.map (fun _ -> "(?, ?)") song_artists |> String.concat ", " in
+    let placeholders =
+      List.map (fun _ -> "(?, ?, ?, ?)") song_artists |> String.concat ", "
+    in
     let (Dynparam.Pack (typ, values)) =
       List.fold_left
         (fun pack sa ->
-          Dynparam.add Caqti_type.(tup2 string string) (sa.song_id, sa.artist_id) pack)
+          Dynparam.add
+            Caqti_type.(tup4 string string (option string) (option string))
+            (sa.song_id, sa.artist_id, sa.artist, sa.album)
+            pack)
         Dynparam.empty
         song_artists
     in
     let sql =
       Printf.sprintf
-        "INSERT OR IGNORE INTO song_artist (song_id, artist_id) VALUES %s"
+        "INSERT OR IGNORE INTO song_artist (song_id, artist_id, artist, album) VALUES %s"
         placeholders
     in
     let open Caqti_request.Infix in

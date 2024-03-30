@@ -142,9 +142,23 @@ let song_artists_of_plays (plays : Api_t.play list) =
   else
     List.fold_left
       (fun acc (play : Api_t.play) ->
-        match song_id_of_play play, artist_ids_set_of_plays [ play ] with
-        | Some song_id, artist_ids ->
-          List.map (fun artist_id -> Song_artist.make ~song_id ~artist_id) artist_ids
+        match
+          song_id_of_play play, artist_ids_set_of_plays [ play ], play.artist, play.album
+        with
+        | Some song_id, artist_ids, Some artist, Some album ->
+          List.map
+            (fun artist_id -> Song_artist.make ~song_id ~artist_id ~artist ~album ())
+            artist_ids
+        | Some song_id, artist_ids, Some artist, None ->
+          List.map
+            (fun artist_id -> Song_artist.make ~song_id ~artist_id ~artist ())
+            artist_ids
+        | Some song_id, artist_ids, None, Some album ->
+          List.map
+            (fun artist_id -> Song_artist.make ~song_id ~artist_id ~album ())
+            artist_ids
+        | Some song_id, artist_ids, None, None ->
+          List.map (fun artist_id -> Song_artist.make ~song_id ~artist_id ()) artist_ids
         | _ -> acc)
       []
       plays

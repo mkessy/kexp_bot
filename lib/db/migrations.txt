@@ -12,3 +12,11 @@ ADD COLUMN artist VARCHAR;
 ALTER TABLE song_artist
 DROP COLUMN artist;
 -- add artist to song_artist table
+
+-- add album to song_artist table
+ALTER TABLE song_artist 
+ADD COLUMN album VARCHAR;
+
+ALTER TABLE song_artist 
+DROP COLUMN album;
+-- add album to song_artist table
