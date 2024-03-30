@@ -163,3 +163,87 @@ end = struct
       ]
   ;;
 end
+
+module Song : sig
+  type t = Controller.Types.song_with_cover_art
+  type song = Controller.Types.song
+
+  val render : song_with_art:t -> [> Html_types.div ] elt
+end = struct
+  type t = Controller.Types.song_with_cover_art
+  type song = Controller.Types.song
+
+  let placeholder_img = "./placeholder.png"
+
+  let render_image ~src ~alt =
+    img
+      ~src
+      ~alt
+      ~a:
+        [ a_class [ "max-w-xs"; "w-full"; "rounded-lg"; "shadow-lg" ]
+        ; a_width 500
+        ; a_height 500
+        ; a_style "aspect-ratio:1/1;object-fit:cover"
+        ]
+      ()
+  ;;
+
+  let render_artwork (song_with_art : t) =
+    let open Controller.Song.Song in
+    let image =
+      match
+        get_front_thumbnail song_with_art `Large, get_back_thumbnail song_with_art `Large
+      with
+      | Some front, _ -> front
+      | None, Some back -> back
+      | None, None -> placeholder_img
+    in
+    render_image ~src:image ~alt:"Album Cover"
+  ;;
+
+  let render_song_details (song : song) =
+    let year = Option.value song.release_date ~default:"" in
+    [ h1
+        ~a:[ a_class [ "text-4xl"; "font-bold"; "mb-2"; "text-gray-100" ] ]
+        [ txt song.song ]
+    ; p
+        ~a:[ a_class [ "text-xl"; "mb-4"; "text-gray-300" ] ]
+        [ txt song.artist; txt " • "; txt (Option.value song.album ~default:"") ]
+    ; p ~a:[ a_class [ "text-lg"; "text-gray-400" ] ] [ txt ("Released " ^ year) ]
+    ]
+  ;;
+
+  let render_stats =
+    div
+      ~a:[ a_class [ "grid"; "grid-cols-2"; "gap-4"; "text-lg" ] ]
+      [ div ~a:[ a_class [ "text-gray-400" ] ] [ txt "Plays" ]
+      ; div ~a:[ a_class [ "text-right"; "font-bold"; "text-teal-400" ] ] [ txt "1,234" ]
+      ; div ~a:[ a_class [ "text-gray-400" ] ] [ txt "Favorite" ]
+      ; div ~a:[ a_class [ "text-right"; "font-bold"; "text-teal-400" ] ] [ txt "95%" ]
+      ]
+  ;;
+
+  let render_last_played =
+    p
+      ~a:[ a_class [ "text-sm"; "text-gray-500" ] ]
+      [ txt "Last played on KEXP: 2023-04-15" ]
+  ;;
+
+  let render ~(song_with_art : t) =
+    let artwork = render_artwork song_with_art in
+    let details = render_song_details (fst song_with_art) in
+    div
+      ~a:
+        [ a_class
+            [ "bg-gray-900"; "shadow-xl"; "rounded-xl"; "p-8"; "max-w-4xl"; "mx-auto" ]
+        ]
+      [ div
+          ~a:[ a_class [ "flex"; "gap-8"; "items-center" ] ]
+          [ artwork
+          ; div
+              ~a:[ a_class [ "flex-1"; "space-y-6" ] ]
+              (details @ [ render_stats; render_last_played ])
+          ]
+      ]
+  ;;
+end

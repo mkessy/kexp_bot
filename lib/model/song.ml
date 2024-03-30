@@ -34,7 +34,7 @@ module Queries = struct
     [%rapper
       get_opt
         {sql|
-  SELECT @string{t.song_id}, @string{t.song}, @string?{t.recording_id}, @string{t.artist}, @string?{t.album}, @string?{t.release_id}, @string?{t.release_group_id}, @string?{t.release_date}, @string?{t.rotation_status}, @bool{t.is_local}, @bool{t.is_request}, @string?{t.labels}, @string?{t.thumbnail_uri} 
+  SELECT @string{song_id}, @string{song}, @string?{recording_id}, @string{artist}, @string?{album}, @string?{release_id}, @string?{release_group_id}, @string?{release_date}, @string?{rotation_status}, @bool{is_local}, @bool{is_request}, @string?{labels}, @string?{thumbnail_uri} 
   FROM songs
   WHERE song_id = %string{song_id}
   |sql}

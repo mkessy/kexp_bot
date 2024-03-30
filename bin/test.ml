@@ -1,13 +1,19 @@
-open Db
+(* let run_test () =
+   let open Lwt_result.Syntax in
+   let* conn = Db.connect () in
+   print_endline Printf.(sprintf "Current working directory: %s" (Sys.getcwd ()));
+   Controller.Playlist.Playlist.get_by_id ~id:1 conn
+   ;; *)
 
-let run_test () =
+let run_test_cover_art () =
   let open Lwt_result.Syntax in
-  let* conn = Db.connect () in
-  (*print current working directory*)
-  print_endline Printf.(sprintf "Current working directory: %s" (Sys.getcwd ()));
-  (*print top songs of the past 7 days with at least 4 plays*)
-  (*print top songs of the past 30 days with at least 4 plays*)
-  Controller.Playlist.Playlist.get_by_id ~id:1 conn
+  let* res =
+    Api.Endpoints.get_cover_art_by_release_group
+      ~release_group_id:"5c61b138-6ffa-4f14-a156-25e6d6e70120"
+  in
+  let res_string = Api.Api_j.string_of_release_group_response res in
+  print_string res_string;
+  Lwt_result.return ()
 ;;
 
 let _pp_option ppf = function
@@ -25,9 +31,15 @@ let handle_error = function
   | #Caqti_error.t as e -> Lwt_io.eprintf "Error: %s\n" (Caqti_error.show e)
 ;;
 
-match Lwt_main.run (run_test ()) with
-| Ok (Some playlist) ->
-  print_endline (Format.sprintf "%d" (List.length playlist.songs));
-  Lwt.return_unit
-| Ok None -> Lwt_io.printl "No playlist found"
-| Error err -> handle_error err
+(* match Lwt_main.run (run_test ()) with
+   | Ok (Some playlist) ->
+   print_endline (Format.sprintf "%d" (List.length playlist.songs));
+   Lwt.return_unit
+   | Ok None -> Lwt_io.printl "No playlist found"
+   | Error err -> handle_error err *)
+
+let _ =
+  match Lwt_main.run (run_test_cover_art ()) with
+  | Ok () -> Lwt.return ()
+  | Error err -> handle_error err
+;;

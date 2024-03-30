@@ -1,6 +1,6 @@
 (library
  (name controller)
  (public_name kexp_bot.controller)
- (libraries lwt ppx_deriving uri caqti caqti-lwt caqti-driver-sqlite3 kexp_bot.model ptime) 
+ (libraries lwt ppx_deriving uri caqti caqti-lwt caqti-driver-sqlite3 kexp_bot.model kexp_bot.api ptime) 
  (preprocess (pps ppx_deriving_yojson ppx_yojson lwt_ppx ppx_deriving.make ppx_deriving.show))
 )

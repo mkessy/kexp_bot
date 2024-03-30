@@ -19,14 +19,27 @@ let playlist (req : Dream.request) =
   let id = Dream.param req "id" |> int_of_string in
   let%lwt playlist = Dream.sql req (Playlist.get_by_id ~id) in
   match playlist with
-  | Ok pl ->
-    (match pl with
-     | Some pl ->
-       let () = print_string (Playlist.show pl) in
-       Dream.html (Pages.single_playlist pl |> html_to_string)
-     | None -> Dream.empty `Not_Found)
+  | Ok (Some pl) ->
+    let () = print_string (Playlist.show pl) in
+    Dream.html (Pages.single_playlist ~playlist:pl |> html_to_string)
+  | Ok None -> Dream.empty `Not_Found
   | Error e ->
     let err_str = Caqti_error.show e in
     let () = Dream.log "Error: %s" err_str in
+    Dream.empty `Internal_Server_Error
+;;
+
+let song (req : Dream.request) =
+  let open Web in
+  let open Controller.Song in
+  let song_id = Dream.param req "song_id" in
+  let () = print_string song_id in
+  let%lwt song_with_art = Dream.sql req (Song.get_by_song_id_with_art ~song_id) in
+  match song_with_art with
+  | Ok (Some song) -> Dream.html (Pages.single_song ~song_with_art:song |> html_to_string)
+  | Ok None -> Dream.empty `Not_Found
+  | Error _ ->
+    (*     let err_str = Caqti_error.show e in
+           let () = Dream.log "Error: %s" err_str in *)
     Dream.empty `Internal_Server_Error
 ;;

@@ -26,7 +26,9 @@ let centered_layout content =
   div
     ~a:
       [ a_class
-          [ "flex flex-col h-full justify-center items-center bg-gray-900 text-white" ]
+          [ "flex flex-col min-h-screen justify-center items-center bg-gray-900 \
+             text-white"
+          ]
       ]
     [ content ]
 ;;

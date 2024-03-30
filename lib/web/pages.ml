@@ -6,6 +6,10 @@ let home ~(playlists : Controller.Types.playlist list) =
     ]
 ;;
 
-let single_playlist (pl : Controller.Types.playlist) =
-  Layouts.base [ Layouts.centered_layout (Components.Playlist.render pl) ]
+let single_playlist ~(playlist : Controller.Types.playlist) =
+  Layouts.base [ Layouts.centered_layout (Components.Playlist.render playlist) ]
+;;
+
+let single_song ~(song_with_art : Controller.Types.song_with_cover_art) =
+  Layouts.base [ Layouts.centered_layout (Components.Song.render ~song_with_art) ]
 ;;
