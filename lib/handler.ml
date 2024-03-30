@@ -33,7 +33,7 @@ let song (req : Dream.request) =
   let open Web in
   let open Controller.Song in
   let song_id = Dream.param req "song_id" in
-  let () = print_string song_id in
+  let () = Dream.log "Song id: %s" song_id in
   let%lwt song_with_art = Dream.sql req (Song.get_by_song_id_with_art ~song_id) in
   match song_with_art with
   | Ok (Some song) -> Dream.html (Pages.single_song ~song_with_art:song |> html_to_string)

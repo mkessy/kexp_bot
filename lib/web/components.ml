@@ -97,6 +97,22 @@ let music_icon () =
       ])
 ;;
 
+module Breadcrumb = struct
+  let render ~items =
+    nav
+      ~a:
+        [ a_class
+            [ "flex"; "items-center"; "space-x-2"; "text-sm"; "text-gray-400"; "mb-8" ]
+        ]
+      (List.rev items
+       |> List.tl
+       |> List.rev
+       |> List.map (fun item -> span [ item; txt " > " ])
+       |> fun items ->
+       items @ [ span ~a:[ a_class [ "text-gray-200" ] ] [ List.hd (List.rev items) ] ])
+  ;;
+end
+
 module Menu = struct
   let render ~home_href ~about_href ~contact_href =
     div
@@ -127,6 +143,24 @@ module Menu = struct
               [ txt "Contact" ]
           ]
       ]
+  ;;
+end
+
+module Navigation = struct
+  let render ~items =
+    nav
+      ~a:
+        [ a_class
+            [ "flex"; "items-center"; "space-x-2"; "text-sm"; "text-gray-400"; "mb-8" ]
+        ]
+      (List.rev items
+       |> List.rev
+       |> List.map (fun item -> span [ item; txt " > " ])
+       |> fun items ->
+       items @ [ span ~a:[ a_class [ "text-gray-200" ] ] [ List.hd (List.rev items) ] ]
+       |> List.rev
+       |> List.tl
+       |> List.rev)
   ;;
 end
 
