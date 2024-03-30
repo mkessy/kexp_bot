@@ -1,6 +1,14 @@
 (* Auto-generated from "api.atd" *)
 [@@@ocaml.warning "-27-32-33-35-39"]
 
+type thumbnail = {
+  two_fifty: string option;
+  five_hundred: string option;
+  twelve_hundred: string option;
+  small: string option;
+  large: string option
+}
+
 type show = {
   id: int;
   uri: string;
@@ -21,6 +29,20 @@ type shows_response = {
   previous: string option;
   results: show list
 }
+
+type image = {
+  edit: int;
+  id: int;
+  image: string;
+  thumbnails: thumbnail;
+  comment: string;
+  approved: bool;
+  front: bool;
+  types: string list;
+  back: bool
+}
+
+type release_group_response = { release: string; images: image list }
 
 type program = {
   id: int;

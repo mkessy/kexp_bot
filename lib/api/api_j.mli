@@ -1,6 +1,14 @@
 (* Auto-generated from "api.atd" *)
 [@@@ocaml.warning "-27-32-33-35-39"]
 
+type thumbnail = Api_t.thumbnail = {
+  two_fifty: string option;
+  five_hundred: string option;
+  twelve_hundred: string option;
+  small: string option;
+  large: string option
+}
+
 type show = Api_t.show = {
   id: int;
   uri: string;
@@ -20,6 +28,23 @@ type shows_response = Api_t.shows_response = {
   next: string option;
   previous: string option;
   results: show list
+}
+
+type image = Api_t.image = {
+  edit: int;
+  id: int;
+  image: string;
+  thumbnails: thumbnail;
+  comment: string;
+  approved: bool;
+  front: bool;
+  types: string list;
+  back: bool
+}
+
+type release_group_response = Api_t.release_group_response = {
+  release: string;
+  images: image list
 }
 
 type program = Api_t.program = {
@@ -70,6 +95,26 @@ type plays_response = Api_t.plays_response = {
   results: play list
 }
 
+val write_thumbnail :
+  Buffer.t -> thumbnail -> unit
+  (** Output a JSON value of type {!type:thumbnail}. *)
+
+val string_of_thumbnail :
+  ?len:int -> thumbnail -> string
+  (** Serialize a value of type {!type:thumbnail}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_thumbnail :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> thumbnail
+  (** Input JSON data of type {!type:thumbnail}. *)
+
+val thumbnail_of_string :
+  string -> thumbnail
+  (** Deserialize JSON data of type {!type:thumbnail}. *)
+
 val write_show :
   Buffer.t -> show -> unit
   (** Output a JSON value of type {!type:show}. *)
@@ -109,6 +154,46 @@ val read_shows_response :
 val shows_response_of_string :
   string -> shows_response
   (** Deserialize JSON data of type {!type:shows_response}. *)
+
+val write_image :
+  Buffer.t -> image -> unit
+  (** Output a JSON value of type {!type:image}. *)
+
+val string_of_image :
+  ?len:int -> image -> string
+  (** Serialize a value of type {!type:image}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_image :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> image
+  (** Input JSON data of type {!type:image}. *)
+
+val image_of_string :
+  string -> image
+  (** Deserialize JSON data of type {!type:image}. *)
+
+val write_release_group_response :
+  Buffer.t -> release_group_response -> unit
+  (** Output a JSON value of type {!type:release_group_response}. *)
+
+val string_of_release_group_response :
+  ?len:int -> release_group_response -> string
+  (** Serialize a value of type {!type:release_group_response}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_release_group_response :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> release_group_response
+  (** Input JSON data of type {!type:release_group_response}. *)
+
+val release_group_response_of_string :
+  string -> release_group_response
+  (** Deserialize JSON data of type {!type:release_group_response}. *)
 
 val write_program :
   Buffer.t -> program -> unit

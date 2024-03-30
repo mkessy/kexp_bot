@@ -67,3 +67,33 @@ type shows_response = {
     ?previous: string option;
     results: show list;
 }
+
+(* Define a type for thumbnails with different resolutions *)
+type thumbnail = {
+  ?two_fifty <json name="250"> : string option;
+  ?five_hundred <json name="500">: string option;
+  ?twelve_hundred <json name="1200">: string option;
+  ?small: string option;
+  ?large: string option;
+}
+
+(* Define a type for an image, including its thumbnails and other properties *)
+type image = {
+  edit: int;
+  id: int;
+  image: string;
+  thumbnails: thumbnail;
+  comment: string;
+  approved: bool;
+  front: bool;
+  types: string list;
+  back: bool;
+}
+
+(* Define a type for the overall response from the /release-group/{release_group_id} endpoint *)
+type release_group_response = {
+  release: string;
+  images: image list;
+}
+
+
