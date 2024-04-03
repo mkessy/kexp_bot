@@ -14,6 +14,10 @@ module Song = struct
     Model.Song.Queries.get_by_song_id ~song_id conn
   ;;
 
+  let get_all_by_release_group_id ~release_group_id conn =
+    Model.Song.Queries.get_all_by_release_group_id ~release_group_id conn
+  ;;
+
   let get_by_song_id_with_art ~song_id conn =
     let open Lwt_result in
     let* song = Model.Song.Queries.get_by_song_id ~song_id conn in

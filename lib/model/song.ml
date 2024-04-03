@@ -42,6 +42,19 @@ module Queries = struct
         syntax_off]
   ;;
 
+  (* grouping by release_group_id gives us an album *)
+  let get_all_by_release_group_id =
+    [%rapper
+      get_many
+        {sql|
+  SELECT @string{song_id}, @string{song}, @string?{recording_id}, @string{artist}, @string?{album}, @string?{release_id}, @string?{release_group_id}, @string?{release_date}, @string?{rotation_status}, @bool{is_local}, @bool{is_request}, @string?{labels}, @string?{thumbnail_uri} 
+  FROM songs
+  WHERE song_id = %string{release_group_id}
+  |sql}
+        record_out
+        syntax_off]
+  ;;
+
   let insert_many (module DB : Caqti_lwt.CONNECTION) songs =
     let placeholders =
       List.map (fun _ -> "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)") songs
