@@ -21,11 +21,33 @@ module Song = struct
     | Some s ->
       (match s.release_group_id, s.release_id with
        | Some rg_id, _ ->
-         let* art = Endpoints.get_cover_art_by_release_group ~release_group_id:rg_id in
-         return (Some (s, Some art))
+         let%lwt art = Endpoints.get_cover_art_by_release_group ~release_group_id:rg_id in
+         (match art with
+          | Ok art -> return (Some (s, Some art))
+          | Error (`Http_error (code, mes)) ->
+            if code = 404
+            then (
+              let%lwt () =
+                Lwt_io.printl
+                  ("Error: cover art api returned 404 for song_id: " ^ s.song_id)
+              in
+              return (Some (s, None)))
+            else fail (`Http_error (code, mes))
+          | Error e -> fail e)
        | _, Some r_id ->
-         let* art = Endpoints.get_cover_art_by_release ~release_id:r_id in
-         return (Some (s, Some art))
+         let%lwt art = Endpoints.get_cover_art_by_release ~release_id:r_id in
+         (match art with
+          | Ok art -> return (Some (s, Some art))
+          | Error (`Http_error (code, mes)) ->
+            if code = 404
+            then (
+              let%lwt () =
+                Lwt_io.printl
+                  ("Error: cover art api returned 404 for song_id: " ^ s.song_id)
+              in
+              return (Some (s, None)))
+            else fail (`Http_error (code, mes))
+          | Error e -> fail e)
        | _ -> return (Some (s, None)))
     | None -> return None
   ;;

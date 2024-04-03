@@ -37,6 +37,11 @@ module Queries = struct
     in
     let query_string = "%" ^ query_string ^ "%" in
     fun (module DB : Caqti_lwt.CONNECTION) ->
-      DB.collect_list query (query_string, query_string, query_string, limit)
+      let open Lwt_result.Syntax in
+      let* results =
+        DB.collect_list query (query_string, query_string, query_string, limit)
+      in
+      List.map (fun (kind, song_id, value) -> make ~kind ~song_id ~value) results
+      |> Lwt_result.return
   ;;
 end

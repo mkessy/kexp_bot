@@ -6,27 +6,35 @@ module Playlist = struct
   type t = Controller.Types.playlist
 
   let song_item (song : Model.Playlist_song.Playlist_song.playlist_song) =
+    let thumbnail_src =
+      match song.thumbnail_uri with
+      | Some uri -> if uri = "" then "/static/placeholder.png" else uri
+      | None -> "/static/placeholder.png"
+    in
     div
       ~a:[ a_class [ "grid"; "gap-2" ] ]
-      [ div
-          ~a:[ a_class [ "flex"; "items-center"; "gap-2" ] ]
-          [ img
-              ~src:(Option.value song.thumbnail_uri ~default:"./placeholder.png")
-              ~alt:"Album Cover"
-              ~a:
-                [ a_class [ "h-12"; "w-12" ]
-                ; a_width 50
-                ; a_height 50
-                ; a_style "aspect-ratio:50/50;object-fit:cover"
-                ]
-              ()
-          ; div
-              [ h3 ~a:[ a_class [ "font-semibold"; "text-white" ] ] [ txt song.song ]
-              ; p
-                  ~a:[ a_class [ "text-sm"; "text-gray-400" ] ]
-                  [ txt song.artist
-                  ; txt " • "
-                  ; txt (Option.value song.album ~default:"")
+      [ a
+          ~a:[ a_href ("/song/" ^ song.song_id) ]
+          [ div
+              ~a:[ a_class [ "flex"; "items-center"; "gap-2" ] ]
+              [ img
+                  ~src:thumbnail_src
+                  ~alt:"Album Cover"
+                  ~a:
+                    [ a_class [ "h-12"; "w-12" ]
+                    ; a_width 50
+                    ; a_height 50
+                    ; a_style "aspect-ratio:50/50;object-fit:cover"
+                    ]
+                  ()
+              ; div
+                  [ h3 ~a:[ a_class [ "font-semibold"; "text-white" ] ] [ txt song.song ]
+                  ; p
+                      ~a:[ a_class [ "text-sm"; "text-gray-400" ] ]
+                      [ txt song.artist
+                      ; txt " • "
+                      ; txt (Option.value song.album ~default:"")
+                      ]
                   ]
               ]
           ]
@@ -207,7 +215,7 @@ end = struct
   type t = Controller.Types.song_with_cover_art
   type song = Controller.Types.song
 
-  let placeholder_img = "./placeholder.png"
+  let placeholder_img = "/static/placeholder.png"
 
   let render_image ~src ~alt =
     img
@@ -224,14 +232,19 @@ end = struct
 
   let render_artwork (song_with_art : t) =
     let open Controller.Song.Song in
+    let song = fst song_with_art in
     let image =
       match
-        get_front_thumbnail song_with_art `Large, get_back_thumbnail song_with_art `Large
+        ( get_front_thumbnail song_with_art `Large
+        , get_back_thumbnail song_with_art `Large
+        , song.thumbnail_uri )
       with
-      | Some front, _ -> front
-      | None, Some back -> back
-      | None, None -> placeholder_img
+      | Some front, _, _ -> front
+      | None, Some back, _ -> back
+      | None, None, Some uri -> if uri = "" then placeholder_img else uri
+      | None, None, None -> placeholder_img
     in
+    let () = print_string image in
     render_image ~src:image ~alt:"Album Cover"
   ;;
 
@@ -279,5 +292,79 @@ end = struct
               (details @ [ render_stats; render_last_played ])
           ]
       ]
+  ;;
+end
+
+module Search = struct
+  let render =
+    div
+      ~a:[]
+      [ label ~a:[ a_label_for "search"; a_class [ "sr-only" ] ] [ txt "Search" ]
+      ; div
+          ~a:[ a_class [ "relative" ] ]
+          [ input
+              ~a:
+                [ a_input_type `Text
+                ; a_id "search"
+                ; a_name "search"
+                ; a_placeholder "Search..."
+                ; a_class
+                    [ "block"
+                    ; "w-full"
+                    ; "pl-4"
+                    ; "pr-10"
+                    ; "py-2"
+                    ; "text-base"
+                    ; "text-gray-900"
+                    ; "placeholder-gray-500"
+                    ; "border"
+                    ; "border-gray-300"
+                    ; "rounded-md"
+                    ; "focus:outline-none"
+                    ; "focus:ring-indigo-500"
+                    ; "focus:border-indigo-500"
+                    ; "focus:placeholder-gray-400"
+                    ; "sm:text-sm"
+                    ]
+                ; Unsafe.string_attrib
+                    "hx-headers"
+                    {|{"Origin":"http://localhost:8080", "Host":"http://localhost:8080"}|}
+                ; Unsafe.string_attrib "hx-post" "/api/search"
+                ; Unsafe.string_attrib "hx-trigger" "keyup changed delay:500ms"
+                ; Unsafe.string_attrib "hx-target" "#search-results"
+                ]
+              ()
+          ; div ~a:[ a_id "search-results"; a_class [ "mt-4"; "space-y-2" ] ] []
+          ]
+      ]
+  ;;
+end
+
+module SearchResults = struct
+  open Uri
+
+  type t = Controller.Types.search_result
+
+  let render (results : t list) =
+    let render_result (result : t) =
+      let icon =
+        match result.kind with
+        | "artist" -> txt "🎤"
+        | "album" -> txt "💿"
+        | "song" -> txt "🎵"
+        | _ -> txt "🔍"
+      in
+      li
+        ~a:[ a_class [ "flex"; "items-center"; "space-x-2" ] ]
+        [ span ~a:[ a_class [ "text-xl" ] ] [ icon ]
+        ; a
+            ~a:
+              [ a_href ("/song/" ^ pct_encode result.song_id)
+              ; a_class [ "text-blue-500"; "hover:underline" ]
+              ]
+            [ txt result.value ]
+        ]
+    in
+    ul ~a:[ a_class [ "space-y-2" ] ] (List.map render_result results)
   ;;
 end

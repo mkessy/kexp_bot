@@ -20,7 +20,7 @@ let run_test_search () =
   let open Db in
   let open Lwt_result.Syntax in
   let* conn = Db.connect () in
-  Controller.Search.Search.search ~limit:25 ~query_string:"The Beat" conn
+  Controller.Search.Search.search ~limit:20 ~query_string:"Deslo" conn
 ;;
 
 let _pp_option ppf = function
@@ -48,7 +48,11 @@ let handle_error = function
 let _ =
   match Lwt_main.run (run_test_search ()) with
   | Ok res ->
-    let () = print_string (List.length res |> string_of_int) in
+    let l =
+      List.map (fun r -> Printf.sprintf "%s" (Model.Search.show r)) res
+      |> String.concat "\n"
+    in
+    print_string l;
     Lwt.return ()
   | Error err -> handle_error err
 ;;

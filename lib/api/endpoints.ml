@@ -75,16 +75,26 @@ let get_cover_art_by_release ~release_id =
   let open Lwt_result.Syntax in
   let* res = get ~endpoint:(`Cover_art_by_release release_id) () in
   print_string res;
-  let cover_art_response = Api_j.release_group_response_of_string res in
-  Lwt_result.return cover_art_response
+  try
+    let cover_art_response = Api_j.release_group_response_of_string res in
+    Lwt_result.return cover_art_response
+  with
+  | Yojson.Json_error e ->
+    print_string e;
+    Lwt_result.fail (`Json_error e)
 ;;
 
 let get_cover_art_by_release_group ~release_group_id =
   let open Lwt_result.Syntax in
   let* res = get ~endpoint:(`Cover_art_by_release_group release_group_id) () in
   print_string res;
-  let cover_art_response = Api_j.release_group_response_of_string res in
-  Lwt_result.return cover_art_response
+  try
+    let cover_art_response = Api_j.release_group_response_of_string res in
+    Lwt_result.return cover_art_response
+  with
+  | Yojson.Json_error e ->
+    print_string e;
+    Lwt_result.fail (`Json_error e)
 ;;
 
 let get_plays ?limit ?offset ?next () =

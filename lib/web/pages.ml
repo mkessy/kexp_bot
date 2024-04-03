@@ -24,6 +24,23 @@ let single_song ~(song_with_art : Controller.Types.song_with_cover_art) =
     ]
 ;;
 
+let search =
+  Layouts.base
+    [ Layouts.search_layout
+        [ Components.Navigation.render
+            ~items:[ a ~a:[ a_href "/" ] [ txt "Home" ]; txt "Search" ]
+        ; div
+            ~a:[ a_class [ "max-w-lg"; "w-full" ] ]
+            [ h1
+                ~a:[ a_class [ "text-4xl"; "font-bold"; "mb-8"; "text-center" ] ]
+                [ txt "Search" ]
+            ; (* Search component will be added here *)
+              Components.Search.render
+            ]
+        ]
+    ]
+;;
+
 let single_playlist ~(playlist : Controller.Types.playlist) =
   Layouts.base
     [ Layouts.centered_layout

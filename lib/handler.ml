@@ -1,4 +1,5 @@
 let html_to_string html = Format.asprintf "%a" (Tyxml.Html.pp ()) html
+let elem_to_string el = Format.asprintf "%a" (Tyxml.Html.pp_elt ()) el
 
 let index (_req : Dream.request) =
   let open Controller.Playlist in
@@ -38,8 +39,31 @@ let song (req : Dream.request) =
   match song_with_art with
   | Ok (Some song) -> Dream.html (Pages.single_song ~song_with_art:song |> html_to_string)
   | Ok None -> Dream.empty `Not_Found
-  | Error _ ->
-    (*     let err_str = Caqti_error.show e in
-           let () = Dream.log "Error: %s" err_str in *)
-    Dream.empty `Internal_Server_Error
+  | Error e ->
+    (match e with
+     | `Curl_error (code, err_string) ->
+       let () = Dream.log "Curl error: %d %s" code err_string in
+       Dream.empty `Internal_Server_Error
+     | `Http_error (code, err_string) ->
+       let () = Dream.log "Http error: %d %s" code err_string in
+       Dream.empty `Internal_Server_Error
+     | _ -> Dream.empty `Internal_Server_Error)
+;;
+
+let search (_req : Dream.request) =
+  let open Web in
+  Dream.html (Pages.search |> html_to_string)
+;;
+
+let api_search (req : Dream.request) =
+  let open Web in
+  let open Controller.Search in
+  let%lwt form = Dream.form ~csrf:false req in
+  match form with
+  | `Ok [ ("search", query_string) ] ->
+    let%lwt results = Dream.sql req (Search.search ~limit:25 ~query_string) in
+    (match results with
+     | Ok results -> Dream.html (Components.SearchResults.render results |> elem_to_string)
+     | _ -> Dream.empty `Internal_Server_Error)
+  | _ -> Dream.empty `Bad_Request
 ;;
