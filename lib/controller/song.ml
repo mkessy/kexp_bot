@@ -5,6 +5,7 @@ module Song = struct
 
   type t = Song.t [@@deriving show]
   type song_with_art = Song.t * Api_t.release_group_response option
+  type play_song = Play_song.t
 
   let insert_song ~(song : t) conn = Model.Song.Queries.insert song conn
   let insert_many ~(songs : t list) conn = Model.Song.Queries.insert_many conn songs
@@ -12,6 +13,10 @@ module Song = struct
   let get_by_song_id ~song_id conn =
     let () = print_endline song_id in
     Model.Song.Queries.get_by_song_id ~song_id conn
+  ;;
+
+  let get_recently_played ~limit conn =
+    Model.Play_song.Queries.get_recently_played ~limit conn
   ;;
 
   let get_all_by_release_group_id ~release_group_id conn =

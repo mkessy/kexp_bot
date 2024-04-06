@@ -120,7 +120,11 @@ let ingest_play (plays : Api_t.play list) conn =
       []
       plays
   in
-  Play.Play.insert_many ~plays:(List.rev trackplays) conn
+  if List.length trackplays = 0
+  then (
+    print_string "No trackplays to ingest\n";
+    Lwt.return (Ok ()))
+  else Play.Play.insert_many ~plays:(List.rev trackplays) conn
 ;;
 
 let ingest_artist (artist_ids : string list) conn =

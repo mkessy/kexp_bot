@@ -1,6 +1,6 @@
 open Tyxml.Html
 
-let head =
+let head_section =
   let open Tyxml in
   [%html
     {|
@@ -12,6 +12,7 @@ let head =
         <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
         <script src="https://unpkg.com/htmx.org@1.9.11"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
+        
     </head>
 |}]
 ;;
@@ -67,4 +68,13 @@ let search_layout content =
     content
 ;;
 
-let base body_content = html head (body body_content)
+let base ~(history : Controller.Types.play_song list) ~body_content =
+  let open Tyxml.Html in
+  let open Components in
+  let live_play_bar =
+    let now_playing = List.hd history in
+    let history = List.tl history in
+    LivePlayBar.render ~now_playing ~history
+  in
+  html head_section (body [ live_play_bar; body_content ])
+;;

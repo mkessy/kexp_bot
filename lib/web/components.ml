@@ -2,15 +2,17 @@ open Tyxml.Html
 
 let html_to_string html = Format.asprintf "%a" (Tyxml.Html.pp ()) html
 
+let thumbnail_or_placeholder (uri : string option) =
+  match uri with
+  | Some uri -> if uri = "" then "/static/placeholder.png" else uri
+  | None -> "/static/placeholder.png"
+;;
+
 module Playlist = struct
   type t = Controller.Types.playlist
 
   let song_item (song : Model.Playlist_song.Playlist_song.playlist_song) =
-    let thumbnail_src =
-      match song.thumbnail_uri with
-      | Some uri -> if uri = "" then "/static/placeholder.png" else uri
-      | None -> "/static/placeholder.png"
-    in
+    let thumbnail_src = thumbnail_or_placeholder song.thumbnail_uri in
     div
       ~a:[ a_class [ "grid"; "gap-2" ] ]
       [ a
@@ -326,12 +328,13 @@ module Search = struct
                     ; "focus:placeholder-gray-400"
                     ; "sm:text-sm"
                     ]
-                ; Unsafe.string_attrib
-                    "hx-headers"
-                    {|{"Origin":"http://localhost:8080", "Host":"http://localhost:8080"}|}
                 ; Unsafe.string_attrib "hx-post" "/api/search"
-                ; Unsafe.string_attrib "hx-trigger" "keyup changed delay:500ms"
                 ; Unsafe.string_attrib "hx-target" "#search-results"
+                ; Unsafe.string_attrib "hx-trigger" "searchEvent"
+                ; Unsafe.string_attrib
+                    "_"
+                    "on keyup debounced at 500ms if me.value.trim().length > 2 then \
+                     trigger searchEvent on me"
                 ]
               ()
           ; div ~a:[ a_id "search-results"; a_class [ "mt-4"; "space-y-2" ] ] []
@@ -366,5 +369,64 @@ module SearchResults = struct
         ]
     in
     ul ~a:[ a_class [ "space-y-2" ] ] (List.map render_result results)
+  ;;
+end
+
+module LivePlayBar = struct
+  let now_playing_item (song : Controller.Types.play_song) =
+    let thumbnail = thumbnail_or_placeholder song.thumbnail_uri in
+    div
+      ~a:[ a_class [ "flex"; "items-center"; "space-x-4"; "text-white" ] ]
+      [ img
+          ~src:thumbnail
+          ~alt:"Album Cover"
+          ~a:[ a_class [ "h-12"; "w-12"; "rounded" ]; a_style "object-fit: cover;" ]
+          ()
+      ; div
+          [ p ~a:[ a_class [ "text-sm"; "font-semibold" ] ] [ txt song.song ]
+          ; p ~a:[ a_class [ "text-xs"; "text-gray-400" ] ] [ txt song.artist ]
+          ]
+      ]
+  ;;
+
+  let history_item (song : Controller.Types.play_song) =
+    let thumbnail = thumbnail_or_placeholder song.thumbnail_uri in
+    div
+      ~a:[ a_class [ "flex"; "items-center"; "space-x-4"; "text-white" ] ]
+      [ img
+          ~src:thumbnail
+          ~alt:"Album Cover"
+          ~a:[ a_class [ "h-10"; "w-10"; "rounded" ]; a_style "object-fit: cover;" ]
+          ()
+      ; div
+          [ p ~a:[ a_class [ "text-xs"; "font-semibold" ] ] [ txt song.song ]
+          ; p ~a:[ a_class [ "text-xs"; "text-gray-400" ] ] [ txt song.artist ]
+          ]
+      ]
+  ;;
+
+  let render
+    ~(now_playing : Controller.Types.play_song)
+    ~(history : Controller.Types.play_song list)
+    =
+    let open Tyxml.Html in
+    let playing_content = now_playing_item now_playing in
+    div
+      ~a:
+        [ a_class
+            [ "bg-gray-800"
+            ; "border-b"
+            ; "border-gray-700"
+            ; "px-4"
+            ; "py-2"
+            ; "flex"
+            ; "justify-center"
+            ; "space-x-4"
+            ; "overflow-x-auto"
+            ]
+        ]
+      [ div ~a:[ a_class [ "flex-none" ] ] [ playing_content ]
+      ; div ~a:[ a_class [ "flex"; "space-x-4" ] ] (List.map history_item history)
+      ]
   ;;
 end

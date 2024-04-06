@@ -1,7 +1,7 @@
 (executable
  (name main)
  (modules main)
- (libraries dream tyxml caqti-driver-sqlite3 kexp_bot kexp_bot.api kexp_bot.db)
+ (libraries dream tyxml caqti-driver-sqlite3 kexp_bot kexp_bot.api kexp_bot.db kexp_bot.ingest)
  (preprocess (pps lwt_ppx ppx_deriving.show)) 
  )
 
