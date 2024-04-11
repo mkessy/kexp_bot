@@ -129,3 +129,46 @@ let get_programs ?limit ?offset ?next () =
   let programs_response = Api_j.program_response_of_string res in
   Lwt_result.return programs_response
 ;;
+
+let get_api_key () =
+  match Sys.getenv_opt "ANTHROPIC_API_KEY" with
+  | Some api_key -> api_key
+  | None -> failwith "ANTHROPIC_API_KEY environment variable not set"
+;;
+
+let create_completion ~(prompt : string) =
+  let model = "claude-3-opus-20240229" in
+  let max_tokens = 1024 in
+  let messages : Api_t.message list = [ { role = `User; content = prompt } ] in
+  let request_message : Api_t.request_message =
+    { model; messages; max_tokens; metadata = None }
+  in
+  let headers =
+    [ "Content-Type", "application/json; charset=utf-8"
+    ; "Accept", "application/json"
+    ; "User-Agent", "OCaml/1.0"
+    ; "anthropic-version", "2023-06-01"
+    ; "x-api-key", get_api_key ()
+    ]
+  in
+  let client = Ezcurl_lwt.make () in
+  let url = "https://api.anthropic.com/v1/messages" in
+  let body = Api_j.string_of_request_message request_message in
+  print_endline body;
+  let%lwt res =
+    Ezcurl_lwt.post ~client ~url ~headers ~content:(`String body) ~params:[] ()
+  in
+  match res with
+  | Ok res when res.code >= 200 && res.code < 300 ->
+    print_endline res.body;
+    let response = Api_j.response_of_string res.body in
+    Lwt_result.return response
+  | Ok res -> Lwt_result.fail (`Http_error (res.code, res.body))
+  | Error (code, msg) -> Lwt_result.fail (`Curl_error (Curl.errno code, msg))
+;;
+
+let get_response_text (response : Api_t.response) =
+  match response.content with
+  | [] -> None
+  | content :: _ -> Some content.text
+;;

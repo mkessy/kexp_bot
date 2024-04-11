@@ -34,3 +34,9 @@ module Date = struct
 end
 
 module StringSet = Set.Make (String)
+
+let rec intersperse sep ls =
+  match ls with
+  | [] | [ _ ] -> ls
+  | hd :: tl -> hd :: sep :: intersperse sep tl
+;;

@@ -228,13 +228,6 @@ let update_programs conn =
     Lwt.return (Ok ())
 ;;
 
-(*
-   - shows response is ordered by id
-   - get latest show id
-   - fetch shows 200 at a time and ingest any shows with an id greater than the latest show id
-   - repeate recursively until no more shows are returned (next is None)
-*)
-
 let update_shows conn =
   let open Lwt_result.Syntax in
   let open Controller.Show in
@@ -267,7 +260,6 @@ let update_shows conn =
     (Uri.to_string (Endpoints.endpoint_to_uri ~endpoint:`Shows ~limit ()))
 ;;
 
-(* TODO: add logic to check if any plays have not yet ingested shows or programs *)
 let update_plays ?(limit = 20) conn =
   let open Lwt_result.Syntax in
   let open Controller.Play in
@@ -276,7 +268,6 @@ let update_plays ?(limit = 20) conn =
   let* latest_play_airdate = Play.get_latest_by_airdate () conn in
   let rec fetch_and_ingest_plays next =
     let* plays = Endpoints.get_plays ~limit ~next () in
-    (* print the latest show and airdate *)
     print_endline
       (Printf.sprintf
          "Latest show id: %s, latest play airdate: %s"

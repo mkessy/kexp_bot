@@ -1,3 +1,5 @@
+type t <ocaml module="Yojson.Safe"> = abstract
+
 type play = {
     id: int;
     uri: string;
@@ -97,3 +99,64 @@ type release_group_response = {
 }
 
 
+type role = [
+  | User <json name="user">
+  | Assistant <json name="assistant">
+]
+
+type message = {
+  role: role;
+  content: string;
+}
+
+type text_content_block = {
+  type_ <json name="type">: string;
+  text: string;
+}
+
+type content_block = text_content_block
+
+type tool = {
+  name: string;
+  description: string option;
+  input_schema: t;
+}
+
+type metadata = {
+  ?stop_sequences: string list option;
+  ?stream: bool option;
+  ?system: string option;
+  ?temperature: float option;
+  tools: tool option list;
+  ?top_k: int option;
+  ?top_p: float option;
+}
+
+type request_message = {
+  model: string;
+  messages: message list;
+  max_tokens: int;
+  ?metadata: metadata option;
+}
+
+type stop_reason = [
+  | EndTurn <json name="end_turn">
+  | MaxTokens <json name="max_tokens">
+  | StopSequence <json name="stop_sequence">
+]
+
+type usage = {
+  input_tokens: int;
+  output_tokens: int;
+}
+
+type response = {
+  id: string;
+  type_ <json name="type">: string;
+  role: role;
+  content: content_block list;
+  model: string;
+  stop_reason: stop_reason;
+  ?stop_sequence: string option;
+  usage: usage;
+}

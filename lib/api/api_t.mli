@@ -1,6 +1,12 @@
 (* Auto-generated from "api.atd" *)
 [@@@ocaml.warning "-27-32-33-35-39"]
 
+type usage = { input_tokens: int; output_tokens: int }
+
+type t = Yojson.Safe.t
+
+type tool = { name: string; description: string option; input_schema: t }
+
 type thumbnail = {
   two_fifty: string option;
   five_hundred: string option;
@@ -8,6 +14,10 @@ type thumbnail = {
   small: string option;
   large: string option
 }
+
+type text_content_block = { type_: string; text: string }
+
+type stop_reason = [ `EndTurn | `MaxTokens | `StopSequence ]
 
 type show = {
   id: int;
@@ -28,6 +38,40 @@ type shows_response = {
   next: string option;
   previous: string option;
   results: show list
+}
+
+type role = [ `User | `Assistant ]
+
+type content_block = text_content_block
+
+type response = {
+  id: string;
+  type_: string;
+  role: role;
+  content: content_block list;
+  model: string;
+  stop_reason: stop_reason;
+  stop_sequence: string option;
+  usage: usage
+}
+
+type metadata = {
+  stop_sequences: string list option;
+  stream: bool option;
+  system: string option;
+  temperature: float option;
+  tools: tool option list;
+  top_k: int option;
+  top_p: float option
+}
+
+type message = { role: role; content: string }
+
+type request_message = {
+  model: string;
+  messages: message list;
+  max_tokens: int;
+  metadata: metadata option
 }
 
 type image = {

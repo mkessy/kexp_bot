@@ -1,4 +1,5 @@
 open Tyxml.Html
+open Uri
 
 let html_to_string html = Format.asprintf "%a" (Tyxml.Html.pp ()) html
 
@@ -7,6 +8,9 @@ let thumbnail_or_placeholder (uri : string option) =
   | Some uri -> if uri = "" then "/static/placeholder.png" else uri
   | None -> "/static/placeholder.png"
 ;;
+
+let uri_of_song (s : Controller.Types.song) = "/song/" ^ pct_encode s.song_id
+let uri_of_play_song (s : Controller.Types.play_song) = "/song/" ^ pct_encode s.song_id
 
 module Playlist = struct
   type t = Controller.Types.playlist
@@ -220,6 +224,7 @@ end = struct
   let placeholder_img = "/static/placeholder.png"
 
   let render_image ~src ~alt =
+    let open Tyxml.Html in
     img
       ~src
       ~alt
@@ -246,23 +251,48 @@ end = struct
       | None, None, Some uri -> if uri = "" then placeholder_img else uri
       | None, None, None -> placeholder_img
     in
-    let () = print_string image in
+    let () = print_endline image in
     render_image ~src:image ~alt:"Album Cover"
   ;;
 
   let render_song_details (song : song) =
-    let year = Option.value song.release_date ~default:"" in
+    let open Tyxml.Html in
+    let year = Option.value ~default:"" song.release_date in
+    let intersperse sep = function
+      | [] -> []
+      | hd :: tl -> hd :: List.fold_right (fun x acc -> sep :: x :: acc) tl []
+    in
+    let album_info =
+      List.filter_map
+        (fun x ->
+          match x with
+          | "" -> None
+          | _ -> Some (txt x))
+        [ Option.value ~default:"" song.album; song.artist; year ]
+      |> intersperse (txt " • ")
+    in
     [ h1
         ~a:[ a_class [ "text-4xl"; "font-bold"; "mb-2"; "text-gray-100" ] ]
         [ txt song.song ]
-    ; p
-        ~a:[ a_class [ "text-xl"; "mb-4"; "text-gray-300" ] ]
-        [ txt song.artist; txt " • "; txt (Option.value song.album ~default:"") ]
-    ; p ~a:[ a_class [ "text-lg"; "text-gray-400" ] ] [ txt ("Released " ^ year) ]
+    ; div
+        ~a:
+          [ a_class
+              [ "flex"
+              ; "justify-left"
+              ; "items-center"
+              ; "mb-4"
+              ; "text-sm"
+              ; "text-gray-500"
+              ; "tracking-tighter"
+              ; "leading-none"
+              ]
+          ]
+        album_info
     ]
   ;;
 
   let render_stats =
+    let open Tyxml.Html in
     div
       ~a:[ a_class [ "grid"; "grid-cols-2"; "gap-4"; "text-lg" ] ]
       [ div ~a:[ a_class [ "text-gray-400" ] ] [ txt "Plays" ]
@@ -273,12 +303,14 @@ end = struct
   ;;
 
   let render_last_played =
+    let open Tyxml.Html in
     p
       ~a:[ a_class [ "text-sm"; "text-gray-500" ] ]
       [ txt "Last played on KEXP: 2023-04-15" ]
   ;;
 
   let render ~(song_with_art : t) =
+    let open Tyxml.Html in
     let artwork = render_artwork song_with_art in
     let details = render_song_details (fst song_with_art) in
     div
@@ -287,10 +319,10 @@ end = struct
             [ "bg-gray-900"; "shadow-xl"; "rounded-xl"; "p-8"; "max-w-4xl"; "mx-auto" ]
         ]
       [ div
-          ~a:[ a_class [ "flex"; "gap-8"; "items-center" ] ]
+          ~a:[ a_class [ "flex"; "gap-8"; "items-start" ] ]
           [ artwork
           ; div
-              ~a:[ a_class [ "flex-1"; "space-y-6" ] ]
+              ~a:[ a_class [ "flex-1"; "space-y-2" ] ]
               (details @ [ render_stats; render_last_played ])
           ]
       ]
@@ -383,7 +415,9 @@ module LivePlayBar = struct
           ~a:[ a_class [ "h-12"; "w-12"; "rounded" ]; a_style "object-fit: cover;" ]
           ()
       ; div
-          [ p ~a:[ a_class [ "text-sm"; "font-semibold" ] ] [ txt song.song ]
+          [ p
+              ~a:[ a_class [ "text-sm"; "font-semibold" ] ]
+              [ a ~a:[ a_href (uri_of_play_song song) ] [ txt song.song ] ]
           ; p ~a:[ a_class [ "text-xs"; "text-gray-400" ] ] [ txt song.artist ]
           ]
       ]
@@ -399,7 +433,9 @@ module LivePlayBar = struct
           ~a:[ a_class [ "h-10"; "w-10"; "rounded" ]; a_style "object-fit: cover;" ]
           ()
       ; div
-          [ p ~a:[ a_class [ "text-xs"; "font-semibold" ] ] [ txt song.song ]
+          [ p
+              ~a:[ a_class [ "text-xs"; "font-semibold" ] ]
+              [ a ~a:[ a_href (uri_of_play_song song) ] [ txt song.song ] ]
           ; p ~a:[ a_class [ "text-xs"; "text-gray-400" ] ] [ txt song.artist ]
           ]
       ]

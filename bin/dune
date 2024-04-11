@@ -31,6 +31,13 @@
  (libraries caqti-driver-sqlite3 kexp_bot kexp_bot.controller)
  ) 
 
+ (executable
+ (name test_api)
+ (modules test_api)
+ (libraries kexp_bot kexp_bot.api lwt_ppx)
+ (preprocess (pps lwt_ppx))
+)
+
 (rule
   (target kexp.sqlite)
   (deps ../kexp.sqlite)

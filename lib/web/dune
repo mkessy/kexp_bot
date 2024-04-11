@@ -1,6 +1,6 @@
 (library
  (name web)
  (public_name kexp_bot.web)
- (libraries lwt tyxml ppx_deriving kexp_bot.controller) 
+ (libraries lwt tyxml ppx_deriving kexp_bot.controller kexp_bot.util) 
  (preprocess (pps lwt_ppx ppx_yojson tyxml-ppx))
 )
